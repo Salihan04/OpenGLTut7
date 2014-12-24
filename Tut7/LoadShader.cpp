@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <stdlib.h>
 #include <string.h>
+#include "LoaderShader.h"
 
 using namespace std;
 
