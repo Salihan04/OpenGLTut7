@@ -1,7 +1,7 @@
 OpenGLTut7
 ==========
 
-Adding texture to the cube created in OpenGLTut6 using OpenGL
+Adding texture to the cube created in OpenGLTut6 using OpenGL. Texture file used is in .bmp format
 
 Implemented using C++ in Visual Studio 2013 environment. Libraries installed using Nuget Package Manager ("Install-Package nupengl.core" for freeglut and glew, and "Install-Package glm" for glm). 
 <br><b>Note:</b> .gitignore is necessary for version control for Visual Studio 2013.
