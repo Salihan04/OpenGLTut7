@@ -78,8 +78,21 @@ GLuint loadBMPTexture(const char *imagePath) {
 	//.BMP files store colour as Blue, Green, Red, hence GL_BGR
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_BGR, GL_UNSIGNED_BYTE, data);
 
+	/*
+	//poor filtering
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	*/
+
+	//better filtering
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	//when MAGnifying the image (no bigger mipmap available), use LINEAR filtering
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	//when MINifying the image, use a LINEAR blend of two mipmaps, each filtered LINEARLY too
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	//generate mipmaps, by the way.
+	glGenerateMipmap(GL_TEXTURE_2D);
 
 	return textureID;
 }
