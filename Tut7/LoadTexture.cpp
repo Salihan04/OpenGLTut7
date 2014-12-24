@@ -21,8 +21,13 @@ GLuint loadBMPTexture(const char *imagePath) {
 	unsigned char *data;
 
 	//read file as a binary file, hence "rb" as mode
-	FILE *file = fopen(imagePath, "rb");
-	if (!file) {
+	FILE *file;
+	errno_t err;
+	err = fopen_s(&file, imagePath, "rb");
+	if (err == 0) {
+		cout << "Image was opened" << endl;
+	}
+	else {
 		cout << "Image could not be opened" << endl;
 		return 0;
 	}

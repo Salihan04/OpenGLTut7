@@ -7,28 +7,28 @@
 #include <stdlib.h>
 #include <time.h>
 #include "LoaderShader.h"
+#include "LoadTexture.h"
 
 using namespace std;
 
 //function prototypes
 void renderScene();
 void createCubeVertexBuffer();
-void createCubeColorBuffer();
+void createCubeTextureCoordBuffer();
 void initialiseGlutCallback();
-GLfloat generateRandNum();
 
 GLuint cubeVertexBuffer;
-GLuint cubeColorBuffer;
-GLuint programId;
+GLuint cubeTextureCoordBuffer;
+GLuint programID;
 GLuint matrixID;
+GLuint textureID;
+GLuint texture;
 glm::mat4 projection;
 glm::mat4 view;
 glm::mat4 cubeModel;
 glm::mat4 cubeMVP;
 
 int main(int argc, char **argv) {
-	srand(time(0));
-
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA);
 	glutInitWindowPosition(300, 300);
@@ -45,10 +45,10 @@ int main(int argc, char **argv) {
 	}
 
 	//need to be after glewInit(), otherwise got error
-	programId = LoadShaders("SimpleVertexShader.vertexshader", "SimpleFragmentShader.fragmentshader");
+	programID = LoadShaders("TransformVertexShader.vertexshader", "TextureFragmentShader.fragmentshader");
 
 	//get a handle for our "MVP" uniform
-	matrixID = glGetUniformLocation(programId, "MVP");
+	matrixID = glGetUniformLocation(programID, "MVP");
 
 	//projection matrix : 45° Field of View, 4:3 ratio, display range : 0.1 unit <-> 100 units
 	projection = glm::perspective(45.0f, 4.0f / 3.0f, 0.1f, 100.0f);
@@ -69,6 +69,12 @@ int main(int argc, char **argv) {
 	//remember, matrix multiplication is the other way around
 	cubeMVP = projection * view * cubeModel;
 
+	//load texture
+	texture = loadBMPTexture("texture.bmp");
+
+	//get a handle for our "myTextureSampler" uniform
+	textureID = glGetUniformLocation(programID, "myTextureSampler");
+
 	//black background
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
@@ -78,7 +84,7 @@ int main(int argc, char **argv) {
 	glDepthFunc(GL_LESS);
 
 	createCubeVertexBuffer();
-	createCubeColorBuffer();
+	createCubeTextureCoordBuffer();
 
 	glutMainLoop();
 
@@ -89,7 +95,7 @@ void renderScene() {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	//use the shader
-	glUseProgram(programId);
+	glUseProgram(programID);
 
 	// Send our transformation to the currently bound shader, 
 	// in the "cubeMVP" uniform
@@ -100,8 +106,8 @@ void renderScene() {
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
 
 	glEnableVertexAttribArray(1);
-	glBindBuffer(GL_ARRAY_BUFFER, cubeColorBuffer);
-	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 0, 0);
+	glBindBuffer(GL_ARRAY_BUFFER, cubeTextureCoordBuffer);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, 0);
 
 	//draw cube
 	glDrawArrays(GL_TRIANGLES, 0, 12 * 3);
@@ -160,29 +166,52 @@ void createCubeVertexBuffer() {
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 }
 
-void createCubeColorBuffer() {
-	GLfloat colors[144];
-	for (int i = 0; i < 144; i++) {
-		colors[i] = generateRandNum();
-	}
+void createCubeTextureCoordBuffer() {
+	GLfloat textureCoords[] = {
+		0.000059f, 1.0f - 0.000004f,
+		0.000103f, 1.0f - 0.336048f,
+		0.335973f, 1.0f - 0.335903f,
+		1.000023f, 1.0f - 0.000013f,
+		0.667979f, 1.0f - 0.335851f,
+		0.999958f, 1.0f - 0.336064f,
+		0.667979f, 1.0f - 0.335851f,
+		0.336024f, 1.0f - 0.671877f,
+		0.667969f, 1.0f - 0.671889f,
+		1.000023f, 1.0f - 0.000013f,
+		0.668104f, 1.0f - 0.000013f,
+		0.667979f, 1.0f - 0.335851f,
+		0.000059f, 1.0f - 0.000004f,
+		0.335973f, 1.0f - 0.335903f,
+		0.336098f, 1.0f - 0.000071f,
+		0.667979f, 1.0f - 0.335851f,
+		0.335973f, 1.0f - 0.335903f,
+		0.336024f, 1.0f - 0.671877f,
+		1.000004f, 1.0f - 0.671847f,
+		0.999958f, 1.0f - 0.336064f,
+		0.667979f, 1.0f - 0.335851f,
+		0.668104f, 1.0f - 0.000013f,
+		0.335973f, 1.0f - 0.335903f,
+		0.667979f, 1.0f - 0.335851f,
+		0.335973f, 1.0f - 0.335903f,
+		0.668104f, 1.0f - 0.000013f,
+		0.336098f, 1.0f - 0.000071f,
+		0.000103f, 1.0f - 0.336048f,
+		0.000004f, 1.0f - 0.671870f,
+		0.336024f, 1.0f - 0.671877f,
+		0.000103f, 1.0f - 0.336048f,
+		0.336024f, 1.0f - 0.671877f,
+		0.335973f, 1.0f - 0.335903f,
+		0.667969f, 1.0f - 0.671889f,
+		1.000004f, 1.0f - 0.671847f,
+		0.667979f, 1.0f - 0.335851f
+	};
 
-	int j = 3;
-	while (j < 12 * 3 * 4) {
-		colors[j] = 1.0f;		//set alpha value to 1.0f
-		j += 4;
-	}
-
-	glGenBuffers(1, &cubeColorBuffer);
-	glBindBuffer(GL_ARRAY_BUFFER, cubeColorBuffer);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(colors), colors, GL_STATIC_DRAW);
+	glGenBuffers(1, &cubeTextureCoordBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, cubeTextureCoordBuffer);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(textureCoords), textureCoords, GL_STATIC_DRAW);
 }
 
 void initialiseGlutCallback() {
 
 	glutDisplayFunc(renderScene);
-}
-
-GLfloat generateRandNum() {
-	//generate random float number from 0.0 to 1.0 inclusive
-	return ((GLfloat)rand()) / RAND_MAX;
 }
